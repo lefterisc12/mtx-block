@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <title>Έκδοση Βεβαίωσης</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    input, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+    }
+    #status {
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Έκδοση Ψηφιακής Βεβαίωσης</h1>
+
+  <label for="fullName">Ονοματεπώνυμο Συμμετέχοντα:</label>
+  <input type="text" id="fullName" placeholder="π.χ. ΙΩΑΝΝΟΥ ΔΗΜΗΤΡΗΣ">
+
+  <label for="eventTitle">Τίτλος Εκδήλωσης:</label>
+  <input type="text" id="eventTitle" placeholder="π.χ. Blockchain Workshop 2025">
+
+  <label for="eventDate">Ημερομηνία Εκδήλωσης:</label>
+  <input type="date" id="eventDate">
+
+  <button onclick="issueCertificate()">Έκδοση</button>
+
+  <div id="status"></div>
+
+  <script>
+    const contractAddress = "0xa984C372e388acfA6AaF1B2FDF206621Ca1B2471";
+    const abi = [
+      {
+        "inputs": [{ "internalType": "bytes32", "name": "_certificateHash", "type": "bytes32" }],
+        "name": "issueCertificate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ];
+
+    async function issueCertificate() {
+      const name = document.getElementById("fullName").value.trim();
+      const title = document.getElementById("eventTitle").value.trim();
+      const date = document.getElementById("eventDate").value;
+
+      if (!name || !title || !date) {
+        alert("Συμπληρώστε όλα τα πεδία.");
+        return;
+      }
+
+      const input = `${name}|${title}|${date}`;
+      const hash = ethers.keccak256(ethers.toUtf8Bytes(input));
+
+      try {
+        if (!window.ethereum) {
+          alert("Χρειάζεται MetaMask.");
+          return;
+        }
+
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, abi, signer);
+
+        const tx = await contract.issueCertificate(hash);
+        document.getElementById("status").innerText = "⌛ Εκτελείται συναλλαγή στο blockchain...";
+        await tx.wait();
+
+        document.getElementById("status").innerText = `✅ Η βεβαίωση εκδόθηκε επιτυχώς. Tx: ${tx.hash}`;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText = "⚠️ Σφάλμα κατά την έκδοση.";
+      }
+    }
+  </script>
+
+</body>
+</html>
