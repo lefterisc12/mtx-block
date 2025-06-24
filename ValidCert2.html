@@ -41,15 +41,15 @@
   <div id="result"></div>
 
   <script>
-    const contractAddress = "0x65782310bF08aa3D9DfD5a3043dD2416504882dF";
+    const contractAddress = "0x3D984Da07E724C9cf2B508426A0D1c9C42Ad990C"; // Αντικατάστησέ το με το δικό σου
     const abi = [
       {
         "inputs": [
           { "internalType": "bytes32", "name": "_certificateHash", "type": "bytes32" }
         ],
-        "name": "verifyCertificate",
+        "name": "getCertificateIdByHash",
         "outputs": [
-          { "internalType": "bool", "name": "", "type": "bool" }
+          { "internalType": "uint256", "name": "", "type": "uint256" }
         ],
         "stateMutability": "view",
         "type": "function"
@@ -57,7 +57,6 @@
     ];
 
     const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/58bb0ea3d83f4704be63de5c312cec7f");
-
 
     async function verifyHash() {
       const name = document.getElementById("fullName").value.trim();
@@ -73,20 +72,20 @@
       const hash = ethers.keccak256(ethers.toUtf8Bytes(input));
 
       try {
-  console.log("Hash:", hash);
-  const contract = new ethers.Contract(contractAddress, abi, provider);
-  console.log("Contract:", contract);
-  
-  const isValid = await contract.verifyCertificate(hash);
-  console.log("Result:", isValid);
+        const contract = new ethers.Contract(contractAddress, abi, provider);
+        const certId = await contract.getCertificateIdByHash(hash);
 
-  document.getElementById("result").innerText = isValid
-    ? "✅ Η βεβαίωση είναι έγκυρη και καταχωρημένη στο blockchain."
-    : "❌ Η βεβαίωση δεν βρέθηκε ή είναι μη έγκυρη.";
-} catch (err) {
-  console.error("Σφάλμα:", err);
-  document.getElementById("result").innerText = "⚠️ Σφάλμα κατά την επαλήθευση.";
-}
+        if (certId > 0) {
+          const link = `https://sepolia.etherscan.io/address/${contractAddress}#events`;
+          document.getElementById("result").innerHTML =
+            `✅ Η βεβαίωση είναι έγκυρη (ID: ${certId}).<br><a href="${link}" target="_blank">🔗 Προβολή στο Etherscan</a>`;
+        } else {
+          document.getElementById("result").innerText = "❌ Η βεβαίωση δεν βρέθηκε ή είναι μη έγκυρη.";
+        }
+      } catch (err) {
+        console.error("Σφάλμα:", err);
+        document.getElementById("result").innerText = "⚠️ Σφάλμα κατά την επαλήθευση.";
+      }
     }
   </script>
 
