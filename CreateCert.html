@@ -27,6 +27,9 @@
 
   <h1>Έκδοση Ψηφιακής Βεβαίωσης</h1>
 
+  <label for="recipient">Διεύθυνση Πορτοφολιού Συμμετέχοντα:</label>
+  <input type="text" id="recipient" placeholder="π.χ. 0x1234...abcd">
+
   <label for="fullName">Ονοματεπώνυμο Συμμετέχοντα:</label>
   <input type="text" id="fullName" placeholder="π.χ. ΙΩΑΝΝΟΥ ΔΗΜΗΤΡΗΣ">
 
@@ -44,7 +47,10 @@
     const contractAddress = "0xB4392C0382EbEfc3230f34527deD34aBB7440415";
     const abi = [
       {
-        "inputs": [{ "internalType": "bytes32", "name": "_certificateHash", "type": "bytes32" }],
+        "inputs": [
+          { "internalType": "address", "name": "_recipient", "type": "address" },
+          { "internalType": "bytes32", "name": "_certificateHash", "type": "bytes32" }
+        ],
         "name": "issueCertificate",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -53,12 +59,18 @@
     ];
 
     async function issueCertificate() {
+      const recipient = document.getElementById("recipient").value.trim();
       const name = document.getElementById("fullName").value.trim();
       const title = document.getElementById("eventTitle").value.trim();
       const date = document.getElementById("eventDate").value;
 
-      if (!name || !title || !date) {
+      if (!recipient || !name || !title || !date) {
         alert("Συμπληρώστε όλα τα πεδία.");
+        return;
+      }
+
+      if (!ethers.isAddress(recipient)) {
+        alert("Μη έγκυρη διεύθυνση πορτοφολιού.");
         return;
       }
 
@@ -77,7 +89,7 @@
         const signer = await provider.getSigner();
         const contract = new ethers.Contract(contractAddress, abi, signer);
 
-        const tx = await contract.issueCertificate(hash);
+        const tx = await contract.issueCertificate(recipient, hash);
         document.getElementById("status").innerText = "⌛ Εκτελείται συναλλαγή στο blockchain...";
         await tx.wait();
 
