@@ -96,7 +96,7 @@
         document.getElementById("status").innerText = `✅ Η βεβαίωση εκδόθηκε επιτυχώς. Tx: ${tx.hash}`;
       } catch (err) {
         console.error(err);
-        document.getElementById("status").innerText = `⚠️ Σφάλμα κατά την έκδοση. ${contractAddress}`;
+        document.getElementById("status").innerText = `⚠️ Σφάλμα κατά την έκδοση. Μόνο ο Owner(${contractAddress}) του Contract μπορεί να εκδόσει βεβαιώσεις.`;
       }
     }
   </script>
