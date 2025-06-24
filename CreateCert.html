@@ -96,7 +96,7 @@
         document.getElementById("status").innerText = `✅ Η βεβαίωση εκδόθηκε επιτυχώς. Tx: ${tx.hash}`;
       } catch (err) {
         console.error(err);
-        document.getElementById("status").innerText = "⚠️ Σφάλμα κατά την έκδοση.";
+        document.getElementById("status").innerText = `⚠️ Σφάλμα κατά την έκδοση. ${contractAddress}`;
       }
     }
   </script>
